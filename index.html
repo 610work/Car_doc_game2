@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0100)file:///C:/Users/maste/Documents/Codex/2026-06-02/files-mentioned-by-the-user-txt/outputs/index.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>車買取書類トレーニング</title>
 <style>
@@ -330,14 +330,14 @@
   <div id="customer-zone">
     <div id="customer-info">
       <div class="label">🚗 お客様情報</div>
-      <div id="info-type">−</div>
-      <div id="info-car">−</div>
+      <div id="info-type">🚗 普通車</div>
+      <div id="info-car">📂 本人所有</div>
       <div id="info-special"></div>
       <div id="info-deceased"></div>
     </div>
     <div id="customer-wrap">
-      <div id="speech-bubble">いらっしゃいませ！</div>
-      <div id="customer-sprite">🧑</div>
+      <div id="speech-bubble">必要書類教えてください</div>
+      <div id="customer-sprite" class="enter">🧑</div>
     </div>
     <div id="progress-bar" style="width:0%"></div>
   </div>
@@ -347,32 +347,28 @@
 
     <!-- タブ（相続モードのみ表示） -->
     <div id="box-tabs">
-      <button class="box-tab active-tab" id="tab-heir"   onclick="switchBox('heir')">👤 筆頭相続人</button>
-      <button class="box-tab deceased-tab" id="tab-dead" onclick="switchBox('deceased')">🪦 亡くなった方</button>
+      <button class="box-tab active-tab" id="tab-heir" onclick="switchBox(&#39;heir&#39;)">👤 筆頭相続人</button>
+      <button class="box-tab deceased-tab" id="tab-dead" onclick="switchBox(&#39;deceased&#39;)">🪦 亡くなった方</button>
     </div>
 
     <!-- 相続人ゾーン -->
     <div class="zone-wrap active-zone" id="zone-heir">
       <div class="zone-label">📌 筆頭相続人の書類（タップで追加・取消）</div>
-      <div class="drop-zone" id="dz-heir">
-        <span class="dz-hint">↓ 下の書類をタップしてください</span>
-      </div>
+      <div class="drop-zone" id="dz-heir"><span class="dz-hint">↓ 下の書類をタップしてください</span></div>
     </div>
 
     <!-- 故人ゾーン -->
     <div class="zone-wrap" id="zone-deceased">
       <div class="zone-label">🪦 亡くなった方の書類（タップで追加・取消）</div>
-      <div class="drop-zone deceased-dz" id="dz-deceased">
-        <span class="dz-hint">↓ 下の書類をタップしてください</span>
-      </div>
+      <div class="drop-zone deceased-dz" id="dz-deceased"><span class="dz-hint">↓ 下の書類をタップしてください</span></div>
     </div>
 
-    <button id="submit-btn" onclick="submitDocs()">✅ 書類を確認する</button>
+    <button id="submit-btn" onclick="submitDocs()" style="display: none;">✅ 書類を確認する</button>
   </div>
 
   <div id="doc-panel">
     <div id="doc-panel-label">📂 書類一覧 — タップでカウンターへ</div>
-    <div id="doc-list"></div>
+    <div id="doc-list"><div class="doc-card" data-doc="実印"><span class="doc-icon">🔏</span>実印</div><div class="doc-card" data-doc="原戸籍"><span class="doc-icon">📖</span>原戸籍</div><div class="doc-card" data-doc="印鑑証明"><span class="doc-icon">🔴</span>印鑑証明</div><div class="doc-card" data-doc="所有権解除依頼書"><span class="doc-icon">🔓</span>所有権解除依頼書</div><div class="doc-card" data-doc="戸籍謄本"><span class="doc-icon">👨‍👩‍👧</span>戸籍謄本</div><div class="doc-card" data-doc="自賠責保険"><span class="doc-icon">🛡️</span>自賠責保険</div><div class="doc-card" data-doc="オートローン残一括照会書"><span class="doc-icon">🏦</span>オートローン残一括照会書</div><div class="doc-card" data-doc="車検証"><span class="doc-icon">📋</span>車検証</div><div class="doc-card" data-doc="リサイクル券"><span class="doc-icon">♻️</span>リサイクル券</div><div class="doc-card" data-doc="納税証明書"><span class="doc-icon">💰</span>納税証明書</div><div class="doc-card" data-doc="申請依頼書"><span class="doc-icon">📄</span>申請依頼書</div><div class="doc-card" data-doc="戸籍の附票"><span class="doc-icon">📜</span>戸籍の附票</div><div class="doc-card" data-doc="免許証コピー"><span class="doc-icon">🪪</span>免許証コピー</div><div class="doc-card" data-doc="住民票の除票"><span class="doc-icon">🗂️</span>住民票の除票</div><div class="doc-card" data-doc="遺産相続協議書"><span class="doc-icon">⚖️</span>遺産相続協議書</div><div class="doc-card" data-doc="委任状"><span class="doc-icon">✍️</span>委任状</div><div class="doc-card" data-doc="譲渡証明書"><span class="doc-icon">📝</span>譲渡証明書</div><div class="doc-card" data-doc="住民票"><span class="doc-icon">🏠</span>住民票</div></div>
   </div>
 </div>
 
@@ -723,5 +719,6 @@ function showFeedback(icon,msg,detail,isGood){
 // ============================================================
 nextCustomer();
 </script>
-</body>
-</html>
+
+
+</body></html>

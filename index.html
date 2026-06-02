@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>車買取書類トレーニング</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg:#1a1a2e; --surface:#16213e; --counter:#0f3460;
+    --accent:#e94560; --gold:#f5a623; --green:#4ecca3;
+    --text:#eaeaea; --muted:#8892a4;
+    --doc-bg:#fefdf8; --doc-border:#c8b99a;
+    --shadow:0 4px 24px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Noto Sans JP',sans-serif;
+    background:var(--bg);color:var(--text);
+    height:100vh;overflow:hidden;
+    display:flex;flex-direction:column;
+    user-select:none;-webkit-tap-highlight-color:transparent;
+  }
+
+  /* ── HUD ── */
+  #hud{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 20px;background:var(--surface);
+    border-bottom:2px solid var(--counter);
+    font-family:'Share Tech Mono',monospace;
+    font-size:clamp(12px,1.3vw,17px);flex-shrink:0;
+  }
+  #hud .title{font-size:clamp(14px,1.7vw,21px);font-weight:900;color:var(--gold);letter-spacing:2px}
+  #hud .stat{color:var(--green)}
+  #score-val{font-size:clamp(17px,1.9vw,24px);color:var(--gold)}
+
+  /* ── LAYOUT ── */
+  #game{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+  /* ── CUSTOMER ZONE ── */
+  #customer-zone{
+    background:linear-gradient(180deg,#0d1b2a 0%,#1b2a3b 100%);
+    flex:1;display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:10px;position:relative;overflow:hidden;
+  }
+  #customer-zone::before{
+    content:'';position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(78,204,163,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(78,204,163,.05) 1px,transparent 1px);
+    background-size:40px 40px;
+  }
+  #customer-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2}
+  #speech-bubble{
+    background:#fff;color:#222;border-radius:16px;
+    padding:10px 20px;font-size:clamp(12px,1.3vw,17px);font-weight:700;
+    max-width:min(380px,70vw);text-align:center;position:relative;
+    box-shadow:0 2px 12px rgba(0,0,0,.3);line-height:1.6;min-height:46px;
+  }
+  #speech-bubble::after{
+    content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:#fff;
+  }
+  #customer-sprite{
+    font-size:clamp(60px,7.5vw,100px);line-height:1;
+    filter:drop-shadow(0 4px 12px rgba(0,0,0,.5));
+  }
+  #customer-sprite.enter{animation:slideIn .5s ease}
+  #customer-sprite.happy{animation:bounce .4s ease}
+  #customer-sprite.angry{animation:shake .4s ease}
+  @keyframes slideIn{from{transform:translateX(200px) scale(.8);opacity:0}to{transform:none;opacity:1}}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  /* ── INFO TAG ── */
+  #customer-info{
+    position:absolute;top:10px;right:14px;
+    background:rgba(15,52,96,.93);border:1px solid var(--green);
+    border-radius:10px;padding:9px 14px;
+    font-size:clamp(11px,1.1vw,15px);color:var(--green);
+    z-index:5;line-height:1.9;
+  }
+  #customer-info .label{color:var(--gold);font-weight:700;font-size:clamp(10px,1vw,13px);margin-bottom:3px}
+  #info-special{color:#ffd580;font-weight:700;font-size:clamp(10px,1vw,13px);margin-top:2px}
+  #info-deceased{color:#ff9eb5;font-weight:700;font-size:clamp(10px,1vw,13px);margin-top:2px}
+
+  /* ── COUNTER ── */
+  #counter{
+    background:linear-gradient(180deg,#1e3a5f 0%,#0f2744 100%);
+    border-top:4px solid #2e5f9e;
+    padding:8px 14px 8px;position:relative;flex-shrink:0;
+  }
+  #counter-top{
+    background:linear-gradient(180deg,#3d7ab5 0%,#2a5f96 100%);
+    border-radius:6px 6px 0 0;height:5px;margin:-8px -14px 7px;
+  }
+
+  /* ── BOX TABS (for deceased mode) ── */
+  #box-tabs{display:none;gap:6px;margin-bottom:6px}
+  #box-tabs.visible{display:flex}
+  .box-tab{
+    padding:5px 14px;border-radius:6px 6px 0 0;
+    font-size:clamp(11px,1.1vw,14px);font-weight:700;cursor:pointer;
+    border:none;background:rgba(255,255,255,.1);color:var(--muted);
+    transition:background .2s,color .2s;
+  }
+  .box-tab.active-tab{background:rgba(78,204,163,.18);color:var(--green)}
+  .box-tab.deceased-tab.active-tab{background:rgba(255,158,181,.18);color:#ff9eb5}
+
+  /* ── DROP ZONES ── */
+  .zone-wrap{display:none}
+  .zone-wrap.active-zone{display:block}
+
+  .zone-label{
+    font-size:clamp(9px,.9vw,12px);color:var(--muted);
+    letter-spacing:1.5px;margin-bottom:5px;text-transform:uppercase;
+  }
+  .drop-zone{
+    min-height:clamp(48px,6.5vh,66px);
+    border:2px dashed rgba(78,204,163,.3);border-radius:8px;
+    display:flex;flex-wrap:wrap;gap:5px;padding:6px;
+    align-items:center;position:relative;transition:border-color .2s;
+  }
+  .drop-zone.deceased-dz{border-color:rgba(255,158,181,.35)}
+  .dz-hint{
+    color:var(--muted);font-size:clamp(11px,1.1vw,14px);
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    pointer-events:none;white-space:nowrap;
+  }
+
+  /* placed chips */
+  .placed-card{
+    background:var(--doc-bg);border:1.5px solid #5cb85c;border-radius:6px;
+    padding:clamp(3px,.45vh,6px) clamp(7px,.75vw,13px) clamp(3px,.45vh,6px) clamp(5px,.55vw,9px);
+    font-size:clamp(11px,1.1vw,15px);font-weight:700;color:#1a3d1a;
+    display:flex;align-items:center;gap:4px;cursor:pointer;
+    animation:popIn .18s ease;transition:background .15s,transform .1s;
+  }
+  .placed-card.deceased-chip{border-color:#e07090;color:#6a1030;background:#fff0f4}
+  .placed-card:hover{background:#ffe0e0;border-color:var(--accent);transform:scale(1.05)}
+  .placed-card .remove-x{color:#999;font-size:10px;margin-left:2px;font-weight:900}
+  .placed-card:hover .remove-x{color:var(--accent)}
+  @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+
+  /* ── SUBMIT ── */
+  #submit-btn{
+    display:none;margin-top:7px;width:100%;
+    padding:clamp(8px,.9vh,13px);
+    background:linear-gradient(135deg,var(--gold),#e8941a);
+    border:none;border-radius:8px;color:#1a1a2e;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:clamp(12px,1.2vw,17px);font-weight:900;
+    cursor:pointer;letter-spacing:2px;
+    transition:transform .1s,box-shadow .1s;
+    box-shadow:0 4px 16px rgba(245,166,35,.4);
+  }
+  #submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,166,35,.5)}
+  #submit-btn:active{transform:translateY(1px)}
+
+  /* ── PROGRESS ── */
+  #progress-bar{
+    position:absolute;bottom:0;left:0;height:3px;
+    background:var(--green);transition:width .4s;border-radius:0 2px 2px 0;
+  }
+
+  /* ── DOC PANEL ── */
+  #doc-panel{
+    background:var(--surface);border-top:2px solid var(--counter);
+    flex-shrink:0;padding:clamp(7px,.9vh,13px) clamp(10px,1.4vw,22px) clamp(8px,1vh,14px);
+  }
+  #doc-panel-label{
+    font-size:clamp(9px,.9vw,13px);color:var(--muted);
+    letter-spacing:2px;margin-bottom:7px;text-transform:uppercase;
+  }
+  #doc-list{display:flex;flex-wrap:wrap;gap:clamp(5px,.7vw,11px);min-height:42px}
+
+  /* ── DOC CARDS ── */
+  .doc-card{
+    background:var(--doc-bg);color:#333;
+    border:1.5px solid var(--doc-border);border-radius:7px;
+    padding:clamp(5px,.65vh,10px) clamp(9px,.95vw,17px) clamp(5px,.65vh,10px) clamp(7px,.75vw,13px);
+    font-size:clamp(11px,1.15vw,16px);font-weight:700;
+    cursor:pointer;white-space:nowrap;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    transition:transform .12s,box-shadow .12s,opacity .2s,background .15s;
+    display:flex;align-items:center;gap:clamp(4px,.45vw,8px);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .doc-card .doc-icon{font-size:clamp(13px,1.3vw,19px)}
+  .doc-card:hover:not(.placed){transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.25);background:#fff8e8}
+  .doc-card:active:not(.placed){transform:scale(.95)}
+  .doc-card.placed{background:#e0f0e0;border-color:#5cb85c;opacity:.48;cursor:default;pointer-events:none}
+  .doc-card.placed-deceased{background:#ffe0ea;border-color:#e07090;opacity:.48;cursor:default;pointer-events:none}
+  .doc-card.fly{animation:flyUp .22s ease forwards}
+  @keyframes flyUp{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(-20px) scale(.82);opacity:0}}
+
+  /* ── FEEDBACK ── */
+  #feedback{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    z-index:100;pointer-events:none;opacity:0;transition:opacity .3s;
+  }
+  #feedback.show{opacity:1}
+  #feedback-inner{
+    background:rgba(15,52,96,.96);border-radius:20px;
+    padding:clamp(18px,2.8vh,34px) clamp(26px,3.8vw,56px);
+    text-align:center;box-shadow:var(--shadow);border:2px solid var(--green);
+    max-width:min(500px,92vw);
+  }
+  #feedback-icon{font-size:clamp(42px,5.5vw,68px)}
+  #feedback-msg{font-size:clamp(15px,1.9vw,24px);font-weight:900;margin-top:9px}
+  #feedback-detail{font-size:clamp(11px,1.1vw,16px);color:var(--muted);margin-top:7px;line-height:2}
+  .missing-badge{
+    display:inline-block;background:var(--accent);color:#fff;
+    border-radius:4px;padding:2px 7px;font-size:clamp(10px,.95vw,13px);margin:2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <span class="title">📁 書類トレーニング</span>
+  <span class="stat">対応件数: <span id="score-val">0</span></span>
+  <span class="stat">ミス: <span id="miss-val">0</span></span>
+</div>
+
+<div id="game">
+  <div id="customer-zone">
+    <div id="customer-info">
+      <div class="label">🚗 お客様情報</div>
+      <div id="info-type">−</div>
+      <div id="info-car">−</div>
+      <div id="info-special"></div>
+      <div id="info-deceased"></div>
+    </div>
+    <div id="customer-wrap">
+      <div id="speech-bubble">いらっしゃいませ！</div>
+      <div id="customer-sprite">🧑</div>
+    </div>
+    <div id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div id="counter">
+    <div id="counter-top"></div>
+
+    <!-- タブ（相続モードのみ表示） -->
+    <div id="box-tabs">
+      <button class="box-tab active-tab" id="tab-heir"   onclick="switchBox('heir')">👤 筆頭相続人</button>
+      <button class="box-tab deceased-tab" id="tab-dead" onclick="switchBox('deceased')">🪦 亡くなった方</button>
+    </div>
+
+    <!-- 相続人ゾーン -->
+    <div class="zone-wrap active-zone" id="zone-heir">
+      <div class="zone-label">📌 筆頭相続人の書類（タップで追加・取消）</div>
+      <div class="drop-zone" id="dz-heir">
+        <span class="dz-hint">↓ 下の書類をタップしてください</span>
+      </div>
+    </div>
+
+    <!-- 故人ゾーン -->
+    <div class="zone-wrap" id="zone-deceased">
+      <div class="zone-label">🪦 亡くなった方の書類（タップで追加・取消）</div>
+      <div class="drop-zone deceased-dz" id="dz-deceased">
+        <span class="dz-hint">↓ 下の書類をタップしてください</span>
+      </div>
+    </div>
+
+    <button id="submit-btn" onclick="submitDocs()">✅ 書類を確認する</button>
+  </div>
+
+  <div id="doc-panel">
+    <div id="doc-panel-label">📂 書類一覧 — タップでカウンターへ</div>
+    <div id="doc-list"></div>
+  </div>
+</div>
+
+<div id="feedback">
+  <div id="feedback-inner">
+    <div id="feedback-icon">✅</div>
+    <div id="feedback-msg"></div>
+    <div id="feedback-detail"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ICON MAP
+// ============================================================
+const DOC_ICONS = {
+  "車検証":"📋","自賠責保険":"🛡️","リサイクル券":"♻️","納税証明書":"💰",
+  "委任状":"✍️","譲渡証明書":"📝","印鑑証明":"🔴","実印":"🔏",
+  "申請依頼書":"📄","免許証コピー":"🪪",
+  "所有権解除依頼書":"🔓","オートローン残一括照会書":"🏦",
+  "住民票":"🏠","住民票の除票":"🗂️","戸籍の附票":"📜","戸籍謄本":"👨‍👩‍👧",
+  "原戸籍":"📖","遺産相続協議書":"⚖️",
+};
+
+// ============================================================
+// BASE DOC SETS
+// ============================================================
+const BASE = {
+  normal_own: ["車検証","自賠責保険","リサイクル券","納税証明書","委任状","譲渡証明書","印鑑証明","実印"],
+  kei_own:    ["車検証","自賠責保険","リサイクル券","納税証明書","申請依頼書","免許証コピー"],
+  loan:       ["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","オートローン残一括照会書","免許証コピー","印鑑証明","実印"],
+};
+
+// 故人書類（固定）
+const DECEASED_DOCS = ["戸籍謄本","原戸籍"];
+// 遺産相続協議書は相続人側ゾーンへ追加
+const HEIR_EXTRA    = ["遺産相続協議書"];
+
+// ============================================================
+// SPECIAL CONDITIONS (住所・苗字)
+// ============================================================
+const SPECIALS = [
+  { label:null, doc:null },
+  { label:"🔤 苗字が変わっている",   doc:"戸籍謄本"    },
+  { label:"📦 住所変更 1回",         doc:"住民票"      },
+  { label:"📦 住所変更 2回",         doc:"住民票の除票" },
+  { label:"📦 住所変更 3回以上",     doc:"戸籍の附票"  },
+];
+
+// ============================================================
+// SCENARIO TEMPLATES
+// ============================================================
+const TEMPLATES = [
+  { type:"普通車（本人所有）",    carLabel:"普通車",   ownership:"本人所有",              baseKey:"normal_own", sprite:"🧑"   },
+  { type:"軽自動車（本人所有）",  carLabel:"軽自動車", ownership:"本人所有",              baseKey:"kei_own",    sprite:"👩"   },
+  { type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"所有権付き（ローン残）", baseKey:"loan",       sprite:"👨‍💼" },
+  { type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"所有権付き（ローン残）", baseKey:"loan",       sprite:"👩‍💼" },
+];
+
+// ============================================================
+// ALL DOCS POOL（書類一覧に出す全種類）
+// ============================================================
+const ALL_DOCS = [...new Set([
+  ...BASE.normal_own,...BASE.kei_own,...BASE.loan,
+  "住民票","住民票の除票","戸籍の附票","戸籍謄本",
+  "原戸籍","遺産相続協議書",
+])];
+
+// ============================================================
+// STATE
+// ============================================================
+let score=0, misses=0;
+let currentScenario=null;
+let prevPatternKey='';          // 連続防止
+let placedHeir    = new Set(); // 相続人ゾーンに置いた書類
+let placedDeceased= new Set(); // 故人ゾーンに置いた書類
+let isDeceasedMode=false;
+let activeBox='heir';           // 'heir' | 'deceased'
+let shuffledDocs=[];
+
+// ============================================================
+// SHUFFLE
+// ============================================================
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+// ============================================================
+// SCENARIO BUILDER — 連続同パターン防止
+// ============================================================
+function buildScenario(){
+  // 故人パターンを独立して抽選（約20%）
+  const wantDeceased = Math.random()<0.20;
+
+  let tmpl, special, patternKey;
+  let tries=0;
+  do{
+    tmpl    = TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)];
+    // 死亡パターンの場合は特殊条件なし（住所変更・苗字変更と併用しない）
+    special = wantDeceased ? SPECIALS[0] : SPECIALS[Math.floor(Math.random()*SPECIALS.length)];
+    patternKey = tmpl.type + '|' + (special.label||'none') + '|' + wantDeceased;
+    tries++;
+  } while(patternKey===prevPatternKey && tries<30);
+  prevPatternKey = patternKey;
+
+  // 相続人（筆頭）が持ってくる書類
+  const heirRequired = [...BASE[tmpl.baseKey]];
+  if(special.doc) heirRequired.push(special.doc);
+
+  if(wantDeceased){
+    heirRequired.push(...HEIR_EXTRA); // 遺産相続協議書
+  }
+
+  return{
+    type:tmpl.type, carLabel:tmpl.carLabel, ownership:tmpl.ownership,
+    sprite:tmpl.sprite, special,
+    isDeceased:wantDeceased,
+    heirRequired,
+    deceasedRequired: wantDeceased ? [...DECEASED_DOCS] : [],
+  };
+}
+
+// ============================================================
+// NEXT CUSTOMER
+// ============================================================
+const SPEECHES=[
+  "必要書類教えてください",
+  "本日契約します！",
+  "入庫日に必要な物を教えてください",
+  "何を準備したらいいですか？",
+];
+
+function nextCustomer(){
+  placedHeir    =new Set();
+  placedDeceased=new Set();
+  activeBox='heir';
+
+  currentScenario=buildScenario();
+  isDeceasedMode=currentScenario.isDeceased;
+  shuffledDocs=shuffle(ALL_DOCS);
+
+  // sprite
+  const sp=document.getElementById('customer-sprite');
+  sp.textContent=currentScenario.sprite;
+  sp.className='enter';
+
+  // speech
+  document.getElementById('speech-bubble').textContent=
+    SPEECHES[Math.floor(Math.random()*SPEECHES.length)];
+
+  // info
+  document.getElementById('info-type').textContent=`🚗 ${currentScenario.carLabel}`;
+  document.getElementById('info-car' ).textContent=`📂 ${currentScenario.ownership}`;
+  document.getElementById('info-special').textContent=
+    currentScenario.special.label ? `⚠️ ${currentScenario.special.label}` : '';
+  document.getElementById('info-deceased').textContent=
+    isDeceasedMode ? '💀 所有者死亡' : '';
+
+  // box tabs
+  const tabs=document.getElementById('box-tabs');
+  if(isDeceasedMode){ tabs.classList.add('visible'); }
+  else              { tabs.classList.remove('visible'); }
+
+  // reset zones
+  resetZone('dz-heir',    '↓ 下の書類をタップしてください');
+  resetZone('dz-deceased','↓ 下の書類をタップしてください');
+  showBox('heir');
+
+  document.getElementById('submit-btn').style.display='none';
+  document.getElementById('progress-bar').style.width='0%';
+
+  renderDocList();
+}
+
+function resetZone(id, hintText){
+  const dz=document.getElementById(id);
+  dz.innerHTML=`<span class="dz-hint">${hintText}</span>`;
+}
+
+// ============================================================
+// BOX SWITCHING
+// ============================================================
+function switchBox(box){
+  activeBox=box;
+  showBox(box);
+  renderDocList();
+}
+function showBox(box){
+  document.getElementById('zone-heir'    ).classList.toggle('active-zone', box==='heir');
+  document.getElementById('zone-deceased').classList.toggle('active-zone', box==='deceased');
+  document.getElementById('tab-heir' ).classList.toggle('active-tab', box==='heir');
+  document.getElementById('tab-dead' ).classList.toggle('active-tab', box==='deceased');
+}
+
+// ============================================================
+// RENDER DOC LIST
+// ============================================================
+function renderDocList(){
+  const list=document.getElementById('doc-list');
+  list.innerHTML='';
+  shuffledDocs.forEach(docName=>{
+    const inHeir    =placedHeir.has(docName);
+    const inDeceased=placedDeceased.has(docName);
+    const card=document.createElement('div');
+    let cls='doc-card';
+    if(inHeir)     cls+=' placed';
+    if(inDeceased) cls+=' placed-deceased';
+    card.className=cls;
+    card.dataset.doc=docName;
+    card.innerHTML=`<span class="doc-icon">${DOC_ICONS[docName]||'📁'}</span>${docName}`;
+    if(!inHeir && !inDeceased){
+      card.addEventListener('click',()=>tapDoc(card,docName));
+    }
+    list.appendChild(card);
+  });
+}
+
+// ============================================================
+// TAP DOC
+// ============================================================
+function tapDoc(card,docName){
+  if(placedHeir.has(docName)||placedDeceased.has(docName)) return;
+  card.classList.add('fly');
+  setTimeout(()=>{
+    if(activeBox==='heir'){
+      placedHeir.add(docName);
+      addChip('dz-heir',docName,false);
+    } else {
+      placedDeceased.add(docName);
+      addChip('dz-deceased',docName,true);
+    }
+    updateProgress();
+    renderDocList();
+    updateSubmitBtn();
+  },200);
+}
+
+function addChip(dzId,docName,isDeceased){
+  const dz=document.getElementById(dzId);
+  const hint=dz.querySelector('.dz-hint');
+  if(hint) hint.remove();
+  const chip=document.createElement('div');
+  chip.className='placed-card'+(isDeceased?' deceased-chip':'');
+  chip.dataset.doc=docName;
+  chip.innerHTML=`<span>${DOC_ICONS[docName]||'📁'}</span>${docName}<span class="remove-x">✕</span>`;
+  chip.addEventListener('click',()=>removeChip(dzId,docName,isDeceased));
+  dz.appendChild(chip);
+}
+
+// ============================================================
+// REMOVE CHIP
+// ============================================================
+function removeChip(dzId,docName,isDeceased){
+  if(isDeceased) placedDeceased.delete(docName);
+  else           placedHeir.delete(docName);
+
+  const dz=document.getElementById(dzId);
+  const chip=dz.querySelector(`.placed-card[data-doc="${CSS.escape(docName)}"]`);
+  if(chip){
+    chip.style.cssText+=';transition:transform .15s,opacity .15s;transform:scale(.7);opacity:0';
+    setTimeout(()=>chip.remove(),150);
+  }
+  setTimeout(()=>{
+    const dz2=document.getElementById(dzId);
+    if(dz2.querySelectorAll('.placed-card').length===0){
+      const h=document.createElement('span');
+      h.className='dz-hint';
+      h.textContent='↓ 下の書類をタップしてください';
+      dz2.appendChild(h);
+    }
+    updateProgress();
+    renderDocList();
+    updateSubmitBtn();
+  },160);
+}
+
+// ============================================================
+// PROGRESS & SUBMIT BUTTON
+// ============================================================
+function updateProgress(){
+  const sc=currentScenario;
+  const totalReq=sc.heirRequired.length+sc.deceasedRequired.length;
+  const matchH=sc.heirRequired.filter(r=>placedHeir.has(r)).length;
+  const matchD=sc.deceasedRequired.filter(r=>placedDeceased.has(r)).length;
+  const pct=((matchH+matchD)/totalReq)*100;
+  document.getElementById('progress-bar').style.width=pct+'%';
+}
+function updateSubmitBtn(){
+  const any=placedHeir.size>0||placedDeceased.size>0;
+  document.getElementById('submit-btn').style.display=any?'block':'none';
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitDocs(){
+  const sc=currentScenario;
+  const heirReq   =new Set(sc.heirRequired);
+  const decReq    =new Set(sc.deceasedRequired);
+
+  const missingH=[...heirReq].filter(r=>!placedHeir.has(r));
+  const extraH  =[...placedHeir].filter(p=>!heirReq.has(p));
+  const missingD=[...decReq].filter(r=>!placedDeceased.has(r));
+  const extraD  =[...placedDeceased].filter(p=>!decReq.has(p));
+
+  const allOk=missingH.length===0&&extraH.length===0&&missingD.length===0&&extraD.length===0;
+
+  if(allOk){
+    score++;
+    document.getElementById('score-val').textContent=score;
+    showFeedback('✅','お見事！書類は揃っています！',
+      `${sc.type}${sc.special.label?' / '+sc.special.label:''} の書類を完璧に揃えました！`,true);
+    document.getElementById('customer-sprite').className='happy';
+    document.getElementById('speech-bubble').textContent='ありがとうございます！';
+    setTimeout(nextCustomer,2200);
+  } else {
+    misses++;
+    document.getElementById('miss-val').textContent=misses;
+    let detail='';
+    const badge=(m,col)=>`<span class="missing-badge" style="background:${col}">${DOC_ICONS[m]||''}${m}</span>`;
+    if(missingH.length) detail+=`<b style="color:#e94560">【相続人】不足:</b> `+missingH.map(m=>badge(m,'#e94560')).join('')+'<br>';
+    if(extraH.length)   detail+=`<b style="color:#f5a623">【相続人】不要:</b> `+extraH.map(m=>badge(m,'#f5a623')).join('')+'<br>';
+    if(missingD.length) detail+=`<b style="color:#ff9eb5">【故人】不足:</b> `  +missingD.map(m=>badge(m,'#c0406a')).join('')+'<br>';
+    if(extraD.length)   detail+=`<b style="color:#ffb86c">【故人】不要:</b> `  +extraD.map(m=>badge(m,'#a06020')).join('');
+    showFeedback('❌','書類を確認してください',detail,false);
+    document.getElementById('customer-sprite').className='angry';
+    document.getElementById('speech-bubble').textContent='えっ…書類が足りないですか？';
+  }
+}
+
+// ============================================================
+// FEEDBACK
+// ============================================================
+function showFeedback(icon,msg,detail,isGood){
+  const fb=document.getElementById('feedback');
+  document.getElementById('feedback-icon').textContent=icon;
+  document.getElementById('feedback-msg').textContent=msg;
+  document.getElementById('feedback-detail').innerHTML=detail;
+  document.getElementById('feedback-inner').style.borderColor=isGood?'var(--green)':'var(--accent)';
+  fb.classList.add('show');
+  setTimeout(()=>fb.classList.remove('show'),isGood?1800:3600);
+}
+
+// ============================================================
+// START
+// ============================================================
+nextCustomer();
+</script>
+</body>
+</html>

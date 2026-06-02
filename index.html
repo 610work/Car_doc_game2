@@ -214,6 +214,108 @@
     display:inline-block;background:var(--accent);color:#fff;
     border-radius:4px;padding:2px 7px;font-size:clamp(10px,.95vw,13px);margin:2px;
   }
+
+  @media (max-width: 640px), (max-height: 720px) {
+    body{
+      min-height:100dvh;
+      height:auto;
+      overflow:auto;
+    }
+    #hud{
+      gap:8px;
+      padding:7px 10px;
+      flex-wrap:wrap;
+    }
+    #hud .title{
+      flex-basis:100%;
+      text-align:center;
+      letter-spacing:1px;
+    }
+    #game{
+      min-height:calc(100dvh - 64px);
+      overflow:visible;
+    }
+    #customer-zone{
+      flex:0 0 clamp(140px, 28dvh, 210px);
+      padding-bottom:6px;
+    }
+    #customer-info{
+      top:6px;
+      right:8px;
+      max-width:46vw;
+      padding:6px 8px;
+      line-height:1.45;
+    }
+    #customer-wrap{
+      gap:5px;
+      max-width:56vw;
+    }
+    #speech-bubble{
+      max-width:56vw;
+      min-height:0;
+      padding:7px 10px;
+      line-height:1.45;
+    }
+    #customer-sprite{
+      font-size:clamp(48px, 17vw, 68px);
+    }
+    #counter{
+      padding:6px 10px 7px;
+    }
+    #counter-top{
+      margin:-6px -10px 6px;
+    }
+    .box-tab{
+      flex:1;
+      padding:6px 8px;
+    }
+    .zone-label{
+      letter-spacing:.5px;
+      line-height:1.4;
+    }
+    .drop-zone{
+      min-height:48px;
+      max-height:96px;
+      overflow:auto;
+      align-content:flex-start;
+      -webkit-overflow-scrolling:touch;
+    }
+    .placed-card{
+      white-space:normal;
+      line-height:1.25;
+    }
+    #submit-btn{
+      margin-top:6px;
+      padding:9px;
+    }
+    #doc-panel{
+      max-height:38dvh;
+      overflow:auto;
+      padding:7px 9px max(10px, env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling:touch;
+    }
+    #doc-panel-label{
+      position:sticky;
+      top:0;
+      z-index:1;
+      background:var(--surface);
+      margin:0 -9px 6px;
+      padding:0 9px 6px;
+    }
+    #doc-list{
+      gap:6px;
+      align-content:flex-start;
+      padding-bottom:4px;
+    }
+    .doc-card{
+      flex:1 1 calc(50% - 6px);
+      min-width:0;
+      justify-content:flex-start;
+      white-space:normal;
+      line-height:1.25;
+      padding:7px 8px;
+    }
+  }
 </style>
 </head>
 <body>

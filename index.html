@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0100)file:///C:/Users/maste/Documents/Codex/2026-06-02/files-mentioned-by-the-user-txt/outputs/index.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>車買取書類トレーニング</title>
 <style>
@@ -167,13 +167,24 @@
   /* ── DOC PANEL ── */
   #doc-panel{
     background:var(--surface);border-top:2px solid var(--counter);
-    flex-shrink:0;padding:clamp(7px,.9vh,13px) clamp(10px,1.4vw,22px) clamp(8px,1vh,14px);
+    flex-shrink:0;
+    max-height:38vh;
+    display:flex;flex-direction:column;
+    padding:clamp(6px,.8vh,12px) clamp(10px,1.4vw,22px) clamp(6px,.8vh,12px);
   }
   #doc-panel-label{
     font-size:clamp(9px,.9vw,13px);color:var(--muted);
-    letter-spacing:2px;margin-bottom:7px;text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;
+    flex-shrink:0;
   }
-  #doc-list{display:flex;flex-wrap:wrap;gap:clamp(5px,.7vw,11px);min-height:42px}
+  #doc-list{
+    display:flex;flex-wrap:wrap;gap:clamp(5px,.7vw,11px);
+    overflow-y:auto;
+    scrollbar-width:thin;scrollbar-color:var(--counter) transparent;
+    padding-bottom:4px;
+  }
+  #doc-list::-webkit-scrollbar{width:4px;height:4px}
+  #doc-list::-webkit-scrollbar-thumb{background:var(--counter);border-radius:4px}
 
   /* ── DOC CARDS ── */
   .doc-card{
@@ -214,108 +225,6 @@
     display:inline-block;background:var(--accent);color:#fff;
     border-radius:4px;padding:2px 7px;font-size:clamp(10px,.95vw,13px);margin:2px;
   }
-
-  @media (max-width: 640px), (max-height: 720px) {
-    body{
-      min-height:100dvh;
-      height:auto;
-      overflow:auto;
-    }
-    #hud{
-      gap:8px;
-      padding:7px 10px;
-      flex-wrap:wrap;
-    }
-    #hud .title{
-      flex-basis:100%;
-      text-align:center;
-      letter-spacing:1px;
-    }
-    #game{
-      min-height:calc(100dvh - 64px);
-      overflow:visible;
-    }
-    #customer-zone{
-      flex:0 0 clamp(140px, 28dvh, 210px);
-      padding-bottom:6px;
-    }
-    #customer-info{
-      top:6px;
-      right:8px;
-      max-width:46vw;
-      padding:6px 8px;
-      line-height:1.45;
-    }
-    #customer-wrap{
-      gap:5px;
-      max-width:56vw;
-    }
-    #speech-bubble{
-      max-width:56vw;
-      min-height:0;
-      padding:7px 10px;
-      line-height:1.45;
-    }
-    #customer-sprite{
-      font-size:clamp(48px, 17vw, 68px);
-    }
-    #counter{
-      padding:6px 10px 7px;
-    }
-    #counter-top{
-      margin:-6px -10px 6px;
-    }
-    .box-tab{
-      flex:1;
-      padding:6px 8px;
-    }
-    .zone-label{
-      letter-spacing:.5px;
-      line-height:1.4;
-    }
-    .drop-zone{
-      min-height:48px;
-      max-height:96px;
-      overflow:auto;
-      align-content:flex-start;
-      -webkit-overflow-scrolling:touch;
-    }
-    .placed-card{
-      white-space:normal;
-      line-height:1.25;
-    }
-    #submit-btn{
-      margin-top:6px;
-      padding:9px;
-    }
-    #doc-panel{
-      max-height:38dvh;
-      overflow:auto;
-      padding:7px 9px max(10px, env(safe-area-inset-bottom));
-      -webkit-overflow-scrolling:touch;
-    }
-    #doc-panel-label{
-      position:sticky;
-      top:0;
-      z-index:1;
-      background:var(--surface);
-      margin:0 -9px 6px;
-      padding:0 9px 6px;
-    }
-    #doc-list{
-      gap:6px;
-      align-content:flex-start;
-      padding-bottom:4px;
-    }
-    .doc-card{
-      flex:1 1 calc(50% - 6px);
-      min-width:0;
-      justify-content:flex-start;
-      white-space:normal;
-      line-height:1.25;
-      padding:7px 8px;
-    }
-  }
 </style>
 </head>
 <body>
@@ -330,14 +239,14 @@
   <div id="customer-zone">
     <div id="customer-info">
       <div class="label">🚗 お客様情報</div>
-      <div id="info-type">🚗 普通車</div>
-      <div id="info-car">📂 本人所有</div>
+      <div id="info-type">−</div>
+      <div id="info-car">−</div>
       <div id="info-special"></div>
       <div id="info-deceased"></div>
     </div>
     <div id="customer-wrap">
-      <div id="speech-bubble">必要書類教えてください</div>
-      <div id="customer-sprite" class="enter">🧑</div>
+      <div id="speech-bubble">いらっしゃいませ！</div>
+      <div id="customer-sprite">🧑</div>
     </div>
     <div id="progress-bar" style="width:0%"></div>
   </div>
@@ -347,28 +256,32 @@
 
     <!-- タブ（相続モードのみ表示） -->
     <div id="box-tabs">
-      <button class="box-tab active-tab" id="tab-heir" onclick="switchBox(&#39;heir&#39;)">👤 筆頭相続人</button>
-      <button class="box-tab deceased-tab" id="tab-dead" onclick="switchBox(&#39;deceased&#39;)">🪦 亡くなった方</button>
+      <button class="box-tab active-tab" id="tab-heir"   onclick="switchBox('heir')">👤 筆頭相続人</button>
+      <button class="box-tab deceased-tab" id="tab-dead" onclick="switchBox('deceased')">🪦 亡くなった方</button>
     </div>
 
     <!-- 相続人ゾーン -->
     <div class="zone-wrap active-zone" id="zone-heir">
-      <div class="zone-label">📌 筆頭相続人の書類（タップで追加・取消）</div>
-      <div class="drop-zone" id="dz-heir"><span class="dz-hint">↓ 下の書類をタップしてください</span></div>
+      <div class="zone-label" id="heir-zone-label">📌 お客様の書類（タップで追加・取消）</div>
+      <div class="drop-zone" id="dz-heir">
+        <span class="dz-hint">↓ 下の書類をタップしてください</span>
+      </div>
     </div>
 
     <!-- 故人ゾーン -->
     <div class="zone-wrap" id="zone-deceased">
       <div class="zone-label">🪦 亡くなった方の書類（タップで追加・取消）</div>
-      <div class="drop-zone deceased-dz" id="dz-deceased"><span class="dz-hint">↓ 下の書類をタップしてください</span></div>
+      <div class="drop-zone deceased-dz" id="dz-deceased">
+        <span class="dz-hint">↓ 下の書類をタップしてください</span>
+      </div>
     </div>
 
-    <button id="submit-btn" onclick="submitDocs()" style="display: none;">✅ 書類を確認する</button>
+    <button id="submit-btn" onclick="submitDocs()">✅ 書類を確認する</button>
   </div>
 
   <div id="doc-panel">
     <div id="doc-panel-label">📂 書類一覧 — タップでカウンターへ</div>
-    <div id="doc-list"><div class="doc-card" data-doc="実印"><span class="doc-icon">🔏</span>実印</div><div class="doc-card" data-doc="原戸籍"><span class="doc-icon">📖</span>原戸籍</div><div class="doc-card" data-doc="印鑑証明"><span class="doc-icon">🔴</span>印鑑証明</div><div class="doc-card" data-doc="所有権解除依頼書"><span class="doc-icon">🔓</span>所有権解除依頼書</div><div class="doc-card" data-doc="戸籍謄本"><span class="doc-icon">👨‍👩‍👧</span>戸籍謄本</div><div class="doc-card" data-doc="自賠責保険"><span class="doc-icon">🛡️</span>自賠責保険</div><div class="doc-card" data-doc="オートローン残一括照会書"><span class="doc-icon">🏦</span>オートローン残一括照会書</div><div class="doc-card" data-doc="車検証"><span class="doc-icon">📋</span>車検証</div><div class="doc-card" data-doc="リサイクル券"><span class="doc-icon">♻️</span>リサイクル券</div><div class="doc-card" data-doc="納税証明書"><span class="doc-icon">💰</span>納税証明書</div><div class="doc-card" data-doc="申請依頼書"><span class="doc-icon">📄</span>申請依頼書</div><div class="doc-card" data-doc="戸籍の附票"><span class="doc-icon">📜</span>戸籍の附票</div><div class="doc-card" data-doc="免許証コピー"><span class="doc-icon">🪪</span>免許証コピー</div><div class="doc-card" data-doc="住民票の除票"><span class="doc-icon">🗂️</span>住民票の除票</div><div class="doc-card" data-doc="遺産相続協議書"><span class="doc-icon">⚖️</span>遺産相続協議書</div><div class="doc-card" data-doc="委任状"><span class="doc-icon">✍️</span>委任状</div><div class="doc-card" data-doc="譲渡証明書"><span class="doc-icon">📝</span>譲渡証明書</div><div class="doc-card" data-doc="住民票"><span class="doc-icon">🏠</span>住民票</div></div>
+    <div id="doc-list"></div>
   </div>
 </div>
 
@@ -400,6 +313,8 @@ const BASE = {
   normal_own: ["車検証","自賠責保険","リサイクル券","納税証明書","委任状","譲渡証明書","印鑑証明","実印"],
   kei_own:    ["車検証","自賠責保険","リサイクル券","納税証明書","申請依頼書","免許証コピー"],
   loan:       ["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","オートローン残一括照会書","免許証コピー","印鑑証明","実印"],
+  // 所有権付き軽自動車 × 死亡パターン専用（実印・オートローン不要、所有権解除あり）
+  loan_kei_deceased: ["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","オートローン残一括照会書","免許証コピー","印鑑証明","実印"],
 };
 
 // 故人書類（固定）
@@ -425,7 +340,7 @@ const TEMPLATES = [
   { type:"普通車（本人所有）",    carLabel:"普通車",   ownership:"本人所有",              baseKey:"normal_own", sprite:"🧑"   },
   { type:"軽自動車（本人所有）",  carLabel:"軽自動車", ownership:"本人所有",              baseKey:"kei_own",    sprite:"👩"   },
   { type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"所有権付き（ローン残）", baseKey:"loan",       sprite:"👨‍💼" },
-  { type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"所有権付き（ローン残）", baseKey:"loan",       sprite:"👩‍💼" },
+  { type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"所有権付き（ローン残）", baseKey:"loan",       deceasedBaseKey:"loan_kei_deceased", sprite:"👩‍💼" },
 ];
 
 // ============================================================
@@ -477,7 +392,9 @@ function buildScenario(){
   prevPatternKey = patternKey;
 
   // 相続人（筆頭）が持ってくる書類
-  const heirRequired = [...BASE[tmpl.baseKey]];
+  // 死亡パターンでかつ専用書類セットがある場合はそちらを使う
+  const heirBaseKey = (wantDeceased && tmpl.deceasedBaseKey) ? tmpl.deceasedBaseKey : tmpl.baseKey;
+  const heirRequired = [...BASE[heirBaseKey]];
   if(special.doc) heirRequired.push(special.doc);
 
   if(wantDeceased){
@@ -528,6 +445,12 @@ function nextCustomer(){
     currentScenario.special.label ? `⚠️ ${currentScenario.special.label}` : '';
   document.getElementById('info-deceased').textContent=
     isDeceasedMode ? '💀 所有者死亡' : '';
+
+  // zone-label の切り替え
+  document.getElementById('heir-zone-label').textContent =
+    isDeceasedMode
+      ? '📌 筆頭相続人の書類（タップで追加・取消）'
+      : '📌 お客様の書類（タップで追加・取消）';
 
   // box tabs
   const tabs=document.getElementById('box-tabs');
@@ -719,6 +642,5 @@ function showFeedback(icon,msg,detail,isGood){
 // ============================================================
 nextCustomer();
 </script>
-
-
-</body></html>
+</body>
+</html>

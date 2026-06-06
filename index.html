@@ -685,11 +685,32 @@ const TEMPLATES=[
   {type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"ディーラー所有権",    baseKey:"loan_dealer", deceasedBaseKey:"loan_kei_deceased", sprite:"👩‍💼"},
   {type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"ローン会社所有権",    baseKey:"loan_finance",deceasedBaseKey:"loan_kei_deceased", sprite:"👩‍💼"},
 ];
-const ALL_DOCS=[...new Set([
-  ...BASE.normal_own,...BASE.normal_own_deceased,...BASE.kei_own,...BASE.kei_own_deceased,...BASE.loan_dealer_deceased,
-  ...BASE.loan_dealer,...BASE.loan_finance,...BASE.loan_kei_deceased,
-  "住民票","住民票の除票","戸籍の附票","戸籍謄本","原戸籍","遺産相続協議書",
-])];
+// 難易度別に登場しうる書類セット
+const DOCS_BY_DIFF={
+  // 初級：本人所有（普通・軽）＋所有権付き（ディーラー・ローン）のみ・特殊なし
+  easy: [...new Set([
+    ...BASE.normal_own,
+    ...BASE.kei_own,
+    ...BASE.loan_dealer,
+    ...BASE.loan_finance,
+  ])],
+  // 中級：初級＋住所変更・苗字変更書類
+  mid: [...new Set([
+    ...BASE.normal_own,
+    ...BASE.kei_own,
+    ...BASE.loan_dealer,
+    ...BASE.loan_finance,
+    "住民票","住民票の除票","戸籍の附票","戸籍謄本",
+  ])],
+  // 上級：全パターン（死亡含む）
+  hard: [...new Set([
+    ...BASE.normal_own,...BASE.normal_own_deceased,
+    ...BASE.kei_own,...BASE.kei_own_deceased,
+    ...BASE.loan_dealer,...BASE.loan_dealer_deceased,
+    ...BASE.loan_finance,...BASE.loan_kei_deceased,
+    "住民票","住民票の除票","戸籍の附票","戸籍謄本","原戸籍","遺産相続協議書",
+  ])],
+};
 const SPEECHES=["必要書類教えてください","本日契約します！","入庫日に必要な物を教えてください","何を準備したらいいですか？"];
 
 // ════════════════════════════════════════════════════════
@@ -975,7 +996,7 @@ function nextCustomer(){
   placedHeir=new Set();placedDeceased=new Set();activeBox='heir';
   currentScenario=buildScenario();
   isDeceasedMode=currentScenario.isDeceased;
-  shuffledDocs=shuffle(ALL_DOCS);
+  shuffledDocs=shuffle(DOCS_BY_DIFF[difficultyLevel]||DOCS_BY_DIFF.hard);
 
   const sp=document.getElementById('customer-sprite');
   sp.textContent=currentScenario.sprite;sp.className='enter';

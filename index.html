@@ -325,6 +325,59 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 }
 .rank-back-btn:hover{background:rgba(78,204,163,.1)}
 .rank-loading{color:var(--muted);font-size:clamp(13px,1.4vw,16px);margin:30px}
+
+/* ════════════════════════════════════
+   DIFFICULTY SCREEN
+════════════════════════════════════ */
+#diff-screen{
+  position:fixed;inset:0;z-index:190;
+  background:linear-gradient(160deg,#0d1b2a 0%,#1a1a2e 60%,#0f3460 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;padding:24px;
+}
+#diff-screen::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(78,204,163,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(78,204,163,.04) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;
+}
+#diff-screen.show{display:flex}
+.diff-title{font-size:clamp(18px,2.5vw,30px);font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:8px}
+.diff-mode-label{font-size:clamp(12px,1.3vw,16px);color:var(--muted);margin-bottom:4px}
+.diff-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.diff-card{
+  background:rgba(255,255,255,.04);border:2px solid rgba(78,204,163,.25);
+  border-radius:16px;padding:clamp(16px,2.5vw,28px) clamp(20px,3vw,36px);
+  cursor:pointer;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;
+  text-align:center;min-width:clamp(120px,18vw,180px);
+}
+.diff-card:hover{transform:translateY(-5px);border-color:var(--green);
+  background:rgba(78,204,163,.08);box-shadow:0 10px 32px rgba(78,204,163,.15)}
+.diff-card:active{transform:scale(.97)}
+.diff-icon{font-size:clamp(28px,4vw,44px);display:block;margin-bottom:10px}
+.diff-name{font-size:clamp(15px,1.8vw,22px);font-weight:900;margin-bottom:6px}
+.diff-easy  .diff-name{color:#4ecca3}
+.diff-mid   .diff-name{color:#f5a623}
+.diff-hard  .diff-name{color:#e94560}
+.diff-desc{font-size:clamp(10px,.95vw,13px);color:var(--muted);line-height:1.7}
+.diff-back-btn{
+  background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:10px;
+  color:var(--muted);font-family:'Noto Sans JP',sans-serif;
+  font-size:clamp(12px,1.2vw,15px);padding:8px 24px;cursor:pointer;
+  transition:color .2s,border-color .2s;margin-top:8px;
+}
+.diff-back-btn:hover{color:var(--text);border-color:var(--text)}
+
+/* HUD 戻るボタン（エンドレス用） */
+#hud-back-btn{
+  display:none;
+  background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:7px;
+  color:var(--muted);font-family:'Noto Sans JP',sans-serif;
+  font-size:clamp(11px,1.1vw,14px);padding:4px 12px;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+#hud-back-btn.visible{display:block}
+#hud-back-btn:hover{color:var(--text);border-color:var(--text)}
 </style>
 </head>
 <body>
@@ -347,6 +400,30 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
   <button class="ranking-btn" onclick="showRanking()">🏆 ランキングを見る</button>
   <div style="margin-top:18px;font-size:clamp(10px,1vw,13px);color:var(--muted);text-align:center;letter-spacing:1px;">バグがありましたら武藤まで教えてください</div>
+</div>
+
+<!-- ════ DIFFICULTY SCREEN ════ -->
+<div id="diff-screen">
+  <div class="diff-title">🎯 難易度を選んでください</div>
+  <div id="diff-mode-label" class="diff-mode-label"></div>
+  <div class="diff-cards">
+    <div class="diff-card diff-easy" onclick="startGame('easy')">
+      <span class="diff-icon">🌱</span>
+      <div class="diff-name">初級</div>
+      <div class="diff-desc">本人所有（普通・軽）<br>所有権付き（ディーラー・ローン）</div>
+    </div>
+    <div class="diff-card diff-mid" onclick="startGame('mid')">
+      <span class="diff-icon">🔥</span>
+      <div class="diff-name">中級</div>
+      <div class="diff-desc">初級＋<br>住所変更・苗字変更</div>
+    </div>
+    <div class="diff-card diff-hard" onclick="startGame('hard')">
+      <span class="diff-icon">💀</span>
+      <div class="diff-name">上級</div>
+      <div class="diff-desc">全パターン登場<br>所有者死亡含む</div>
+    </div>
+  </div>
+  <button class="diff-back-btn" onclick="hideDiff()">← 戻る</button>
 </div>
 
 <!-- ════ RANKING SCREEN ════ -->
@@ -372,6 +449,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <!-- ════ HUD ════ -->
 <div id="hud">
   <span class="title" onclick="goTitle()">📁 書類トレーニング</span>
+  <button id="hud-back-btn" onclick="goTitle()">← トップへ</button>
   <div id="timer-wrap" class="visible" style="display:none">
     <span style="color:var(--muted);font-size:clamp(11px,1.1vw,14px)">⏱</span>
     <span id="timer-display">60</span>
@@ -481,7 +559,8 @@ const SPEECHES=["必要書類教えてください","本日契約します！","
 // ════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════
-let gameMode='';        // 'endless' | 'timeattack'
+let gameMode='';
+let difficultyLevel=''; // 'easy'|'mid'|'hard'        // 'endless' | 'timeattack'
 let score=0,misses=0;
 let currentScenario=null;
 let prevPatternKey='';
@@ -516,47 +595,71 @@ function goTitle(){
   clearInterval(timerInterval);
   gameActive=false;
   document.getElementById('result-screen').classList.remove('show');
+  document.getElementById('hud-back-btn').classList.remove('visible');
+  hideDiff();
   showTitle();
 }
 
 function startEndless(){
   gameMode='endless';
   hideTitle();
-  score=0;misses=0;
-  document.getElementById('score-val').textContent=0;
-  document.getElementById('miss-val').textContent=0;
-  // タイマーHUD非表示
-  document.getElementById('timer-wrap').style.display='none';
-  gameActive=true;
-  nextCustomer();
+  showDiff();
 }
 
 function startTimeAttack(){
   gameMode='timeattack';
   hideTitle();
-  score=0;misses=0;timeLeft=90;
+  showDiff();
+}
+
+// ════════════════════════════════════════════════════════
+// DIFFICULTY SELECT
+// ════════════════════════════════════════════════════════
+function showDiff(){
+  const label = gameMode==='endless' ? '♾️ エンドレスモード' : '⏱️ タイムアタックモード';
+  document.getElementById('diff-mode-label').textContent = label;
+  document.getElementById('diff-screen').classList.add('show');
+}
+function hideDiff(){
+  document.getElementById('diff-screen').classList.remove('show');
+}
+
+function startGame(diff){
+  difficultyLevel = diff;
+  hideDiff();
+  score=0; misses=0;
   document.getElementById('score-val').textContent=0;
   document.getElementById('miss-val').textContent=0;
-  // タイマーHUD表示
-  const tw=document.getElementById('timer-wrap');
-  tw.style.display='flex';
-  const td=document.getElementById('timer-display');
-  td.textContent=90;
-  td.classList.remove('danger');
-  gameActive=true;
-  nextCustomer();
-  // タイマー開始
-  timerInterval=setInterval(()=>{
-    timeLeft--;
-    td.textContent=timeLeft;
-    if(timeLeft<=10) td.classList.add('danger');
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      gameActive=false;
-      td.textContent=0;
-      setTimeout(showResult,600);
-    }
-  },1000);
+
+  if(gameMode==='endless'){
+    document.getElementById('timer-wrap').style.display='none';
+    document.getElementById('hud-back-btn').classList.add('visible');
+    gameActive=true;
+    nextCustomer();
+  } else {
+    // タイムアタック
+    document.getElementById('hud-back-btn').classList.remove('visible');
+    timeLeft=90;
+    const tw=document.getElementById('timer-wrap');
+    tw.style.display='flex';
+    const td=document.getElementById('timer-display');
+    td.textContent=90;
+    td.classList.remove('danger');
+    gameActive=true;
+    nextCustomer();
+    timerInterval=setInterval(()=>{
+      timeLeft--;
+      td.textContent=timeLeft;
+      if(timeLeft<=10) td.classList.add('danger');
+      if(timeLeft<=0){
+        clearInterval(timerInterval);
+        gameActive=false;
+        td.textContent=0;
+        document.getElementById('hud-back-btn').classList.remove('visible');
+        setTimeout(showResult,600);
+      }
+    },1000);
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -684,11 +787,23 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // SCENARIO BUILDER
 // ════════════════════════════════════════════════════════
 function buildScenario(){
-  const wantDeceased=Math.random()<0.20;
+  // 難易度によって使うTEMPLATESとSPECIALSを絞る
+  // 初級：死亡なし・特殊なし
+  // 中級：死亡なし・住所/苗字変更あり
+  // 上級：全部
+  const wantDeceased = (difficultyLevel==='hard') ? Math.random()<0.20 : false;
+  const availableSpecials = (difficultyLevel==='easy')
+    ? [SPECIALS[0]]                   // 特殊なしのみ
+    : (difficultyLevel==='mid')
+      ? SPECIALS.slice(0,5)           // 全特殊（死亡なし）
+      : SPECIALS;                     // 上級：全部（死亡と特殊は併用しない制御は既存ロジック通り）
+
   let tmpl,special,patternKey,tries=0;
   do{
     tmpl=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)];
-    special=wantDeceased?SPECIALS[0]:SPECIALS[Math.floor(Math.random()*SPECIALS.length)];
+    special=wantDeceased
+      ? SPECIALS[0]
+      : availableSpecials[Math.floor(Math.random()*availableSpecials.length)];
     patternKey=tmpl.type+'|'+(special.label||'none')+'|'+wantDeceased;
     tries++;
   }while(patternKey===prevPatternKey&&tries<30);

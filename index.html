@@ -449,7 +449,9 @@ const BASE={
   kei_own:   ["車検証","自賠責保険","リサイクル券","納税証明書","申請依頼書","免許証コピー"],
   loan_dealer: ["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","免許証コピー","オートローン残一括代金照会依頼書"],
   loan_finance:["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","免許証コピー","実印","印鑑証明","オートローン残一括代金照会依頼書"],
+  normal_own_deceased:["車検証","自賠責保険","リサイクル券","納税証明書","委任状","譲渡証明書","実印","印鑑証明"],
   kei_own_deceased:["車検証","自賠責保険","リサイクル券","納税証明書","申請依頼書","免許証コピー","実印","印鑑証明"],
+  loan_dealer_deceased:["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","オートローン残一括代金照会依頼書","免許証コピー","実印","印鑑証明"],
   loan_kei_deceased:["車検証","自賠責保険","リサイクル券","納税証明書","所有権解除依頼書","オートローン残一括代金照会依頼書","免許証コピー","印鑑証明","実印"],
 };
 const DECEASED_DOCS=["戸籍謄本","原戸籍"];
@@ -462,15 +464,15 @@ const SPECIALS=[
   {label:"📦 住所変更 3回以上",doc:"戸籍の附票"},
 ];
 const TEMPLATES=[
-  {type:"普通車（本人所有）",    carLabel:"普通車",   ownership:"本人所有",           baseKey:"normal_own",  sprite:"🧑"},
+  {type:"普通車（本人所有）",    carLabel:"普通車",   ownership:"本人所有",           baseKey:"normal_own",  deceasedBaseKey:"normal_own_deceased", sprite:"🧑"},
   {type:"軽自動車（本人所有）",  carLabel:"軽自動車", ownership:"本人所有",           baseKey:"kei_own",     deceasedBaseKey:"kei_own_deceased",  sprite:"👩"},
-  {type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"ディーラー所有権",    baseKey:"loan_dealer", sprite:"👨‍💼"},
-  {type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"ローン会社所有権",    baseKey:"loan_finance",sprite:"👨‍💼"},
+  {type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"ディーラー所有権",    baseKey:"loan_dealer", deceasedBaseKey:"loan_dealer_deceased", sprite:"👨‍💼"},
+  {type:"所有権付き（普通車）",  carLabel:"普通車",   ownership:"ローン会社所有権",    baseKey:"loan_finance",deceasedBaseKey:"loan_kei_deceased", sprite:"👨‍💼"},
   {type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"ディーラー所有権",    baseKey:"loan_dealer", deceasedBaseKey:"loan_kei_deceased", sprite:"👩‍💼"},
   {type:"所有権付き（軽自動車）",carLabel:"軽自動車", ownership:"ローン会社所有権",    baseKey:"loan_finance",deceasedBaseKey:"loan_kei_deceased", sprite:"👩‍💼"},
 ];
 const ALL_DOCS=[...new Set([
-  ...BASE.normal_own,...BASE.kei_own,...BASE.kei_own_deceased,
+  ...BASE.normal_own,...BASE.normal_own_deceased,...BASE.kei_own,...BASE.kei_own_deceased,...BASE.loan_dealer_deceased,
   ...BASE.loan_dealer,...BASE.loan_finance,...BASE.loan_kei_deceased,
   "住民票","住民票の除票","戸籍の附票","戸籍謄本","原戸籍","遺産相続協議書",
 ])];

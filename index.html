@@ -459,6 +459,105 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   transition:background .2s;position:relative;z-index:1;
 }
 .learn-back-btn:hover{background:rgba(78,204,163,.1)}
+
+/* ════════════════════════════════════
+   REVIEW SCREEN (エンドレス振り返り)
+════════════════════════════════════ */
+#review-screen{
+  position:fixed;inset:0;z-index:195;
+  background:linear-gradient(160deg,#0d1b2a 0%,#1a1a2e 60%,#0f3460 100%);
+  display:none;flex-direction:column;align-items:center;
+  padding:20px 16px 32px;overflow-y:auto;
+}
+#review-screen::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(78,204,163,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(78,204,163,.04) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;
+}
+#review-screen.show{display:flex}
+.review-title{
+  font-size:clamp(18px,2.5vw,28px);font-weight:900;color:var(--gold);
+  letter-spacing:2px;margin:10px 0 6px;text-align:center;position:relative;z-index:1;
+}
+.review-summary{
+  font-size:clamp(12px,1.3vw,16px);color:var(--muted);
+  margin-bottom:18px;text-align:center;position:relative;z-index:1;
+}
+.review-summary b{color:var(--green)}
+
+/* 苦手分析ボックス */
+.weakness-box{
+  width:100%;max-width:600px;
+  background:rgba(233,69,96,.08);border:1.5px solid rgba(233,69,96,.35);
+  border-radius:14px;padding:14px 18px;margin-bottom:18px;
+  position:relative;z-index:1;
+}
+.weakness-box-title{
+  font-size:clamp(13px,1.3vw,16px);font-weight:900;color:var(--accent);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.weakness-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:clamp(11px,1.1vw,14px);color:var(--text);
+  margin-bottom:6px;flex-wrap:wrap;
+}
+.weakness-bar-wrap{
+  flex:1;min-width:80px;height:8px;
+  background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;
+}
+.weakness-bar{height:100%;border-radius:4px;background:var(--accent);transition:width .6s ease}
+.weakness-count{color:var(--accent);font-weight:900;font-size:clamp(12px,1.2vw,15px);white-space:nowrap}
+
+/* ミス一覧 */
+.miss-list{
+  width:100%;max-width:600px;
+  display:flex;flex-direction:column;gap:10px;
+  margin-bottom:22px;position:relative;z-index:1;
+}
+.miss-card{
+  background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:12px 16px;
+}
+.miss-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;flex-wrap:wrap;gap:6px;
+}
+.miss-scenario{
+  font-size:clamp(12px,1.2vw,15px);font-weight:700;color:var(--green);
+}
+.miss-count-badge{
+  background:var(--accent);color:#fff;border-radius:20px;
+  padding:2px 10px;font-size:clamp(10px,1vw,13px);font-weight:900;white-space:nowrap;
+}
+.miss-doc-row{
+  font-size:clamp(11px,1.05vw,14px);line-height:1.9;
+}
+.miss-doc-row .lbl{color:var(--muted);margin-right:4px}
+.miss-forgot{
+  display:inline-block;background:rgba(233,69,96,.2);
+  border:1px solid var(--accent);border-radius:4px;
+  color:#ffb0bc;padding:1px 7px;margin:2px;font-size:clamp(10px,1vw,13px);
+}
+.miss-extra{
+  display:inline-block;background:rgba(245,166,35,.15);
+  border:1px solid var(--gold);border-radius:4px;
+  color:#ffd580;padding:1px 7px;margin:2px;font-size:clamp(10px,1vw,13px);
+}
+.perfect-box{
+  width:100%;max-width:600px;text-align:center;
+  background:rgba(78,204,163,.08);border:1.5px solid rgba(78,204,163,.3);
+  border-radius:14px;padding:20px;font-size:clamp(14px,1.5vw,18px);
+  color:var(--green);font-weight:700;margin-bottom:18px;
+  position:relative;z-index:1;
+}
+.review-back-btn{
+  background:transparent;border:1.5px solid rgba(78,204,163,.4);border-radius:10px;
+  color:var(--green);font-family:'Noto Sans JP',sans-serif;
+  font-size:clamp(13px,1.3vw,16px);padding:10px 32px;cursor:pointer;
+  transition:background .2s;position:relative;z-index:1;
+}
+.review-back-btn:hover{background:rgba(78,204,163,.1)}
 </style>
 </head>
 <body>
@@ -484,6 +583,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <button class="ranking-btn" onclick="showRanking()">🏆 ランキングを見る</button>
   </div>
   <div style="margin-top:18px;font-size:clamp(10px,1vw,13px);color:var(--muted);text-align:center;letter-spacing:1px;">バグがありましたら武藤まで教えてください</div>
+</div>
+
+<!-- ════ REVIEW SCREEN ════ -->
+<div id="review-screen">
+  <div class="review-title">📊 プレイ振り返り</div>
+  <div class="review-summary" id="review-summary"></div>
+  <div id="review-weakness"></div>
+  <div class="miss-list" id="review-miss-list"></div>
+  <button class="review-back-btn" onclick="hideReview()">← トップへ戻る</button>
 </div>
 
 <!-- ════ LEARN SCREEN ════ -->
@@ -719,6 +827,7 @@ const SPEECHES=["必要書類教えてください","本日契約します！","
 let gameMode='';
 let difficultyLevel=''; // 'easy'|'mid'|'hard'        // 'endless' | 'timeattack'
 let score=0,misses=0;
+let missLog=[]; // {scenarioKey, scenarioLabel, missingH, extraH, missingD, extraD}
 let currentScenario=null;
 let prevPatternKey='';
 let placedHeir=new Set(),placedDeceased=new Set();
@@ -754,7 +863,12 @@ function goTitle(){
   document.getElementById('result-screen').classList.remove('show');
   document.getElementById('hud-back-btn').classList.remove('visible');
   hideDiff();
-  showTitle();
+  // エンドレスでミスがあれば振り返り画面へ
+  if(gameMode==='endless' && missLog.length>0){
+    showReview();
+  } else {
+    showTitle();
+  }
 }
 
 function startEndless(){
@@ -767,6 +881,115 @@ function startTimeAttack(){
   gameMode='timeattack';
   hideTitle();
   showDiff();
+}
+
+// ════════════════════════════════════════════════════════
+// REVIEW (エンドレス振り返り)
+// ════════════════════════════════════════════════════════
+function showReview(){
+  hideTitle();
+  document.getElementById('review-screen').classList.add('show');
+
+  // サマリー
+  document.getElementById('review-summary').innerHTML =
+    `今回の対応: <b>${score}</b> 件成功 ／ ミス <b style="color:var(--accent)">${misses}</b> 件`;
+
+  // ミスなし
+  if(missLog.length===0){
+    document.getElementById('review-weakness').innerHTML='';
+    document.getElementById('review-miss-list').innerHTML=
+      '<div class="perfect-box">🎉 ミスなし！完璧です！</div>';
+    return;
+  }
+
+  // ──── 苦手分析 ────
+  // 忘れた書類の集計
+  const forgotCount={};
+  missLog.forEach(log=>{
+    [...Object.keys(log.missingH),...Object.keys(log.missingD)].forEach(d=>{
+      forgotCount[d]=(forgotCount[d]||0)+(log.missingH[d]||0)+(log.missingD[d]||0);
+    });
+  });
+  const forgotSorted=Object.entries(forgotCount).sort((a,b)=>b[1]-a[1]);
+  const maxForgot=forgotSorted[0]?forgotSorted[0][1]:1;
+
+  // 間違えたシナリオ集計
+  const scenarioCount={};
+  missLog.forEach(log=>{scenarioCount[log.scenarioLabel]=(scenarioCount[log.scenarioLabel]||0)+log.count});
+  const scenarioSorted=Object.entries(scenarioCount).sort((a,b)=>b[1]-a[1]);
+
+  let weakHtml='<div class="weakness-box"><div class="weakness-box-title">🔍 苦手傾向分析</div>';
+
+  if(forgotSorted.length>0){
+    weakHtml+='<div style="font-size:clamp(11px,1.1vw,13px);color:var(--muted);margin-bottom:6px">よく忘れる書類 TOP'+Math.min(forgotSorted.length,5)+'</div>';
+    forgotSorted.slice(0,5).forEach(([doc,cnt])=>{
+      const pct=Math.round(cnt/maxForgot*100);
+      weakHtml+=`<div class="weakness-item">
+        <span>${DOC_ICONS[doc]||'📄'}${doc}</span>
+        <div class="weakness-bar-wrap"><div class="weakness-bar" style="width:${pct}%"></div></div>
+        <span class="weakness-count">${cnt}回</span>
+      </div>`;
+    });
+  }
+
+  if(scenarioSorted.length>0){
+    weakHtml+='<div style="font-size:clamp(11px,1.1vw,13px);color:var(--muted);margin:10px 0 6px">間違えやすいパターン</div>';
+    scenarioSorted.slice(0,3).forEach(([label,cnt])=>{
+      weakHtml+=`<div class="weakness-item" style="color:var(--muted)">
+        <span style="flex:1">🚗 ${escHtml(label)}</span>
+        <span class="weakness-count">${cnt}回ミス</span>
+      </div>`;
+    });
+  }
+  weakHtml+='</div>';
+  document.getElementById('review-weakness').innerHTML=weakHtml;
+
+  // ──── ミス詳細一覧 ────
+  const listEl=document.getElementById('review-miss-list');
+  listEl.innerHTML='<div style="width:100%;max-width:600px;font-size:clamp(11px,1.1vw,14px);color:var(--muted);margin-bottom:8px;position:relative;z-index:1">📋 ミス詳細</div>';
+
+  // ミス回数が多い順
+  const sortedLog=[...missLog].sort((a,b)=>b.count-a.count);
+  sortedLog.forEach(log=>{
+    const card=document.createElement('div');
+    card.className='miss-card';
+
+    // 忘れた書類と余分な書類をまとめる
+    let docsHtml='';
+    const mH=Object.keys(log.missingH), eH=Object.keys(log.extraH);
+    const mD=Object.keys(log.missingD), eD=Object.keys(log.extraD);
+
+    if(mH.length||eH.length){
+      const label=log.deceasedRequired.length>0?'筆頭相続人':'お客様';
+      docsHtml+=`<div class="miss-doc-row"><span class="lbl">【${label}】必要書類:</span>`;
+      log.heirRequired.forEach(d=>{
+        if(mH.includes(d)) docsHtml+=`<span class="miss-forgot">${DOC_ICONS[d]||''}${d}（忘れ）</span>`;
+      });
+      eH.forEach(d=>{ docsHtml+=`<span class="miss-extra">${DOC_ICONS[d]||''}${d}（不要）</span>`; });
+      docsHtml+='</div>';
+    }
+    if(mD.length||eD.length){
+      docsHtml+=`<div class="miss-doc-row"><span class="lbl">【故人】必要書類:</span>`;
+      log.deceasedRequired.forEach(d=>{
+        if(mD.includes(d)) docsHtml+=`<span class="miss-forgot">${DOC_ICONS[d]||''}${d}（忘れ）</span>`;
+      });
+      eD.forEach(d=>{ docsHtml+=`<span class="miss-extra">${DOC_ICONS[d]||''}${d}（不要）</span>`; });
+      docsHtml+='</div>';
+    }
+
+    card.innerHTML=`
+      <div class="miss-card-header">
+        <span class="miss-scenario">🚗 ${escHtml(log.scenarioLabel)}</span>
+        ${log.count>1?`<span class="miss-count-badge">${log.count}回間違えました</span>`:''}
+      </div>
+      ${docsHtml}`;
+    listEl.appendChild(card);
+  });
+}
+
+function hideReview(){
+  document.getElementById('review-screen').classList.remove('show');
+  showTitle();
 }
 
 // ════════════════════════════════════════════════════════
@@ -796,7 +1019,7 @@ function hideDiff(){
 function startGame(diff){
   difficultyLevel = diff;
   hideDiff();
-  score=0; misses=0;
+  score=0; misses=0; missLog=[];
   document.getElementById('score-val').textContent=0;
   document.getElementById('miss-val').textContent=0;
 
@@ -1123,6 +1346,29 @@ function submitDocs(){
   }else{
     misses++;
     document.getElementById('miss-val').textContent=misses;
+    // エンドレスモードのミスを記録
+    if(gameMode==='endless'){
+      const sKey = sc.type+'|'+(sc.special.label||'')+'|'+sc.isDeceased+'|'+sc.ownership;
+      const sLabel = sc.type
+        + (sc.ownership?'（'+sc.ownership+'）':'')
+        + (sc.special.label?' ／ '+sc.special.label:'')
+        + (sc.isDeceased?' ／ 所有者死亡':'');
+      const existing = missLog.find(l=>l.scenarioKey===sKey);
+      if(existing){
+        existing.count++;
+        misH.forEach(d=>{existing.missingH[d]=(existing.missingH[d]||0)+1});
+        extH.forEach(d=>{existing.extraH[d]=(existing.extraH[d]||0)+1});
+        misD.forEach(d=>{existing.missingD[d]=(existing.missingD[d]||0)+1});
+        extD.forEach(d=>{existing.extraD[d]=(existing.extraD[d]||0)+1});
+      } else {
+        const toMap=arr=>Object.fromEntries(arr.map(d=>[d,1]));
+        missLog.push({scenarioKey:sKey,scenarioLabel:sLabel,count:1,
+          missingH:toMap(misH),extraH:toMap(extH),
+          missingD:toMap(misD),extraD:toMap(extD),
+          heirRequired:[...sc.heirRequired],
+          deceasedRequired:[...sc.deceasedRequired]});
+      }
+    }
     const badge=(m,c)=>`<span class="missing-badge" style="background:${c}">${DOC_ICONS[m]||''}${m}</span>`;
     let detail='';
     if(misH.length) detail+=`<b style="color:#e94560">【相続人】不足:</b> `+misH.map(m=>badge(m,'#e94560')).join('')+'<br>';

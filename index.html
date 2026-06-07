@@ -583,6 +583,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <button class="ranking-btn" onclick="showRanking()">🏆 ランキングを見る</button>
   </div>
   <div style="margin-top:18px;font-size:clamp(10px,1vw,13px);color:var(--muted);text-align:center;letter-spacing:1px;">バグがありましたら武藤まで教えてください</div>
+  <div style="margin-top:8px;font-size:clamp(9px,.9vw,12px);color:rgba(136,146,164,.6);text-align:center;letter-spacing:.5px;">このゲームは研修用に作成したため、現場知識と異なる場合がございます</div>
 </div>
 
 <!-- ════ REVIEW SCREEN ════ -->
@@ -1370,9 +1371,10 @@ function submitDocs(){
       }
     }
     const badge=(m,c)=>`<span class="missing-badge" style="background:${c}">${DOC_ICONS[m]||''}${m}</span>`;
+    const hLabel=isDeceasedMode?'筆頭相続人':'お客様';
     let detail='';
-    if(misH.length) detail+=`<b style="color:#e94560">【相続人】不足:</b> `+misH.map(m=>badge(m,'#e94560')).join('')+'<br>';
-    if(extH.length) detail+=`<b style="color:#f5a623">【相続人】不要:</b> `+extH.map(m=>badge(m,'#f5a623')).join('')+'<br>';
+    if(misH.length) detail+=`<b style="color:#e94560">【${hLabel}】不足:</b> `+misH.map(m=>badge(m,'#e94560')).join('')+'<br>';
+    if(extH.length) detail+=`<b style="color:#f5a623">【${hLabel}】不要:</b> `+extH.map(m=>badge(m,'#f5a623')).join('')+'<br>';
     if(misD.length) detail+=`<b style="color:#ff9eb5">【故人】不足:</b> `+misD.map(m=>badge(m,'#c0406a')).join('')+'<br>';
     if(extD.length) detail+=`<b style="color:#ffb86c">【故人】不要:</b> `+extD.map(m=>badge(m,'#a06020')).join('');
     showFeedback('❌','書類を確認してください',detail,false);

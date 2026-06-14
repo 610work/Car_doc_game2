@@ -652,6 +652,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="diff-title">🎯 難易度を選んでください</div>
   <div id="diff-mode-label" class="diff-mode-label"></div>
   <div class="diff-cards">
+    <div class="diff-card diff-easy" onclick="startGame('intro')">
+      <span class="diff-icon">🐣</span>
+      <div class="diff-name">入門</div>
+      <div class="diff-desc">本人所有の<br>普通車・軽自動車のみ</div>
+    </div>
     <div class="diff-card diff-easy" onclick="startGame('easy')">
       <span class="diff-icon">🌱</span>
       <div class="diff-name">初級</div>
@@ -796,6 +801,11 @@ const TEMPLATES=[
 ];
 // 難易度別に登場しうる書類セット
 const DOCS_BY_DIFF={
+  // 入門：本人所有（普通・軽）のみ
+  intro: [...new Set([
+    ...BASE.normal_own,
+    ...BASE.kei_own,
+  ])],
   // 初級：本人所有（普通・軽）＋所有権付き（ディーラー・ローン）のみ・特殊なし
   easy: [...new Set([
     ...BASE.normal_own,
@@ -1181,19 +1191,24 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // ════════════════════════════════════════════════════════
 function buildScenario(){
   // 難易度によって使うTEMPLATESとSPECIALSを絞る
+  // 入門：本人所有のみ・特殊なし・死亡なし
   // 初級：死亡なし・特殊なし
   // 中級：死亡なし・住所/苗字変更あり
   // 上級：全部
   const wantDeceased = (difficultyLevel==='hard') ? Math.random()<0.20 : false;
-  const availableSpecials = (difficultyLevel==='easy')
+  const availableSpecials = (difficultyLevel==='intro'||difficultyLevel==='easy')
     ? [SPECIALS[0]]                   // 特殊なしのみ
     : (difficultyLevel==='mid')
       ? SPECIALS.slice(0,5)           // 全特殊（死亡なし）
-      : SPECIALS;                     // 上級：全部（死亡と特殊は併用しない制御は既存ロジック通り）
+      : SPECIALS;                     // 上級：全部
+  // 入門は本人所有テンプレートのみ
+  const availableTemplates = difficultyLevel==='intro'
+    ? TEMPLATES.filter(t=>t.baseKey==='normal_own'||t.baseKey==='kei_own')
+    : TEMPLATES;
 
   let tmpl,special,patternKey,tries=0;
   do{
-    tmpl=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)];
+    tmpl=availableTemplates[Math.floor(Math.random()*availableTemplates.length)];
     special=wantDeceased
       ? SPECIALS[0]
       : availableSpecials[Math.floor(Math.random()*availableSpecials.length)];
@@ -1220,7 +1235,7 @@ function nextCustomer(){
   placedHeir=new Set();placedDeceased=new Set();activeBox='heir';
   currentScenario=buildScenario();
   isDeceasedMode=currentScenario.isDeceased;
-  shuffledDocs=shuffle(DOCS_BY_DIFF[difficultyLevel]||DOCS_BY_DIFF.hard);
+  shuffledDocs=shuffle(DOCS_BY_DIFF[difficultyLevel]||DOCS_BY_DIFF.intro);
 
   const sp=document.getElementById('customer-sprite');
   sp.textContent=currentScenario.sprite;sp.className='enter';

@@ -1431,16 +1431,11 @@ function submitDocs(){
           deceasedRequired:[...sc.deceasedRequired]});
       }
     }
-    const badge=(m,c)=>`<span class="missing-badge" style="background:${c}">${DOC_ICONS[m]||''}${m}</span>`;
-    const hLabel=isDeceasedMode?'筆頭相続人':'お客様';
-    let detail='';
-    if(misH.length) detail+=`<b style="color:#e94560">【${hLabel}】不足:</b> `+misH.map(m=>badge(m,'#e94560')).join('')+'<br>';
-    if(extH.length) detail+=`<b style="color:#f5a623">【${hLabel}】不要:</b> `+extH.map(m=>badge(m,'#f5a623')).join('')+'<br>';
-    if(misD.length) detail+=`<b style="color:#ff9eb5">【故人】不足:</b> `+misD.map(m=>badge(m,'#c0406a')).join('')+'<br>';
-    if(extD.length) detail+=`<b style="color:#ffb86c">【故人】不要:</b> `+extD.map(m=>badge(m,'#a06020')).join('');
-    showFeedback('❌','書類を確認してください',detail,false);
+    // どの書類が不足・不要かは答えそのものなので出さない。
+    // （何をミスしたかは、ゲーム終了後の振り返りで確認できる）
+    showFeedback('❌','不正解です','もう一度、お客様情報をよく見て考えてみましょう。',false);
     document.getElementById('customer-sprite').className='angry';
-    document.getElementById('speech-bubble').textContent='えっ…書類が足りないですか？';
+    document.getElementById('speech-bubble').textContent='えっ…何か違うみたいです…';
   }
 }
 

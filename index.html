@@ -501,6 +501,16 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   font-size:clamp(11px,1.1vw,14px);color:var(--text);
   margin-bottom:6px;flex-wrap:wrap;
 }
+/* よく忘れる書類TOP5：3列グリッド。ラベル列の幅は一番長い書類名に
+   全行で揃うため、バーのスタート位置が縦にまっすぐ揃う */
+.weakness-grid{
+  display:grid;grid-template-columns:auto minmax(60px,1fr) auto;
+  column-gap:10px;row-gap:7px;align-items:center;margin-bottom:4px;
+}
+.weakness-grid .w-label{
+  font-size:clamp(11px,1.1vw,14px);color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:11em;
+}
 .weakness-bar-wrap{
   flex:1;min-width:80px;height:8px;
   background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;
@@ -971,14 +981,14 @@ function showReview(){
 
   if(forgotSorted.length>0){
     weakHtml+='<div style="font-size:clamp(11px,1.1vw,13px);color:var(--muted);margin-bottom:6px">よく忘れる書類 TOP'+Math.min(forgotSorted.length,5)+'</div>';
+    weakHtml+='<div class="weakness-grid">';
     forgotSorted.slice(0,5).forEach(([doc,cnt])=>{
       const pct=Math.round(cnt/maxForgot*100);
-      weakHtml+=`<div class="weakness-item">
-        <span>${DOC_ICONS[doc]||'📄'}${doc}</span>
+      weakHtml+=`<span class="w-label" title="${escHtml(doc)}">${DOC_ICONS[doc]||'📄'}${escHtml(doc)}</span>
         <div class="weakness-bar-wrap"><div class="weakness-bar" style="width:${pct}%"></div></div>
-        <span class="weakness-count">${cnt}回</span>
-      </div>`;
+        <span class="weakness-count">${cnt}回</span>`;
     });
+    weakHtml+='</div>';
   }
 
   if(scenarioSorted.length>0){

@@ -557,6 +557,25 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   transition:background .2s;position:relative;z-index:1;
 }
 .review-back-btn:hover{background:rgba(78,204,163,.1)}
+/* ===== スマホ（縦持ち）対応 =====
+   ・お客様情報を吹き出しと重ならない横帯として上に出す
+   ・選んだ書類が増えても、お客様情報と確認ボタンが隠れないようにする */
+@media (max-width: 700px) {
+  #customer-zone { flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 8px 8px 4px; }
+  #customer-info {
+    position: static; order: -1; flex-shrink: 0;
+    display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: baseline;
+    padding: 6px 10px; line-height: 1.6; margin-bottom: 6px;
+    font-size: 13px;
+  }
+  #customer-info .label { margin-bottom: 0; }
+  #customer-wrap { flex: 1; min-height: 0; justify-content: flex-start; overflow: hidden; }
+  #speech-bubble { max-width: 100%; font-size: 12.5px; padding: 8px 12px; min-height: 0; }
+  #customer-sprite { font-size: clamp(30px, 10vw, 56px); }
+  /* 書類を選びすぎてもカウンターが伸び続けない（枠の中でスクロール） */
+  .drop-zone { max-height: 22vh; overflow-y: auto; align-content: flex-start; }
+  #doc-panel { max-height: 32vh; }
+}
 </style>
 </head>
 <body>
@@ -850,6 +869,24 @@ let timeLeft=90;
 let gameActive=false;
 
 // ════════════════════════════════════════════════════════
+// 研修ビューア連携（成績記録・名前プリフィル）
+// ════════════════════════════════════════════════════════
+let traineeName='';
+window.addEventListener('message',(ev)=>{
+  // 親（研修ビューア）から研修生名を受け取る
+  const okOrigin = ev.origin==='https://610work.github.io' || ev.origin.startsWith('http://localhost');
+  if(!okOrigin) return;
+  const d=ev.data||{};
+  if(d.type==='kenshuTrainee' && typeof d.name==='string') traineeName=d.name.slice(0,20);
+});
+// 親画面に成績を通知（進捗に自動記録される）
+function reportScore(){
+  if(window.parent===window) return;
+  if(score<=0 && misses<=0) return;
+  try{ window.parent.postMessage({type:'kenshuGameScore', score:score, total:null, misses:misses},'*'); }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════
 // UTIL
 // ════════════════════════════════════════════════════════
 function shuffle(arr){
@@ -869,7 +906,9 @@ function hideTitle(){
 }
 function goTitle(){
   clearInterval(timerInterval);
+  const wasActive=gameActive;
   gameActive=false;
+  if(wasActive) reportScore();   // プレイを終了した時点の成績を親に通知
   document.getElementById('result-screen').classList.remove('show');
   document.getElementById('hud-back-btn').classList.remove('visible');
   hideDiff();
@@ -1070,8 +1109,10 @@ function startGame(diff){
 function showResult(){
   document.getElementById('result-score').textContent=score;
   document.getElementById('result-miss').textContent=`ミス ${misses} 件`;
-  document.getElementById('player-name').value='';
+  // 研修ビューア経由なら研修生名をプリフィル（手入力の手間と表記ゆれを減らす）
+  document.getElementById('player-name').value=traineeName||'';
   document.getElementById('result-screen').classList.add('show');
+  reportScore();   // タイムアタック終了時の成績を親に通知
 }
 
 // ════════════════════════════════════════════════════════
@@ -1082,14 +1123,20 @@ const FB_DB_URL    = 'https://cardocgame-default-rtdb.firebaseio.com';
 const RANK_PATH    = '/rankings';
 const MAX_RANK     = 20;
 
+// このゲームのランキング判定：rankings は全ゲーム共通のため game フィールドで区別する
+// （昔の記録には game が無いので、無印はこのゲーム（docs）の記録として扱う）
+const RANK_GAME='docs';
+function isMyRank(e){ return e && (!e.game || e.game===RANK_GAME); }
+
 // Firebase REST API ヘルパー
 async function fbGet(){
-  const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json?orderBy=\"score\"&limitToLast=${MAX_RANK}`);
+  const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json`);
   if(!res.ok) throw new Error('GET failed');
   const data=await res.json();
   if(!data) return [];
-  // objectをarrayに変換してスコア降順ソート
-  return Object.values(data).sort((a,b)=>b.score-a.score||(a.misses-b.misses));
+  // objectをarrayに変換 → このゲームの記録だけに絞ってスコア降順ソート
+  return Object.values(data).filter(isMyRank)
+    .sort((a,b)=>b.score-a.score||(a.misses-b.misses)).slice(0,MAX_RANK);
 }
 async function fbPush(entry){
   const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json`,{
@@ -1099,13 +1146,13 @@ async function fbPush(entry){
   });
   if(!res.ok) throw new Error('POST failed');
 }
-// MAX_RANK超えたら最低スコアのエントリを削除
+// MAX_RANK超えたら最低スコアのエントリを削除（このゲームの記録だけが対象）
 async function fbCleanup(){
   const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json`);
   if(!res.ok) return;
   const data=await res.json();
   if(!data) return;
-  const entries=Object.entries(data).map(([k,v])=>({key:k,...v}));
+  const entries=Object.entries(data).map(([k,v])=>({key:k,...v})).filter(isMyRank);
   if(entries.length<=MAX_RANK) return;
   entries.sort((a,b)=>b.score-a.score||(a.misses-b.misses));
   const toDelete=entries.slice(MAX_RANK);
@@ -1117,7 +1164,7 @@ async function fbCleanup(){
 async function saveScore(){
   const name=document.getElementById('player-name').value.trim()||'名無し';
   const entry={
-    name, score, misses,
+    name, score, misses, game:RANK_GAME,
     date:new Date().toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
   };
   const btn=document.querySelector('.save-btn');

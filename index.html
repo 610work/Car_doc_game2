@@ -889,6 +889,13 @@ window.addEventListener('message',(ev)=>{
   const d=ev.data||{};
   if(d.type==='kenshuTrainee' && typeof d.name==='string') traineeName=d.name.slice(0,20);
 });
+// 親（研修ビューア）に1問ごとの結果を通知する。
+// エンドレス等の「回として成績が残らないモード」でも、
+// プレイ問題数・正解数が研修生の進捗に累計される。
+function reportAnswer(correct){
+  if(window.parent===window) return;
+  try{ window.parent.postMessage({type:'kenshuGameAnswer', correct:!!correct},'*'); }catch(e){}
+}
 // 親画面に成績を通知（進捗に自動記録される）
 function reportScore(){
   if(window.parent===window) return;
@@ -1407,6 +1414,7 @@ function submitDocs(){
   const misD=[...dReq].filter(r=>!placedDeceased.has(r));
   const extD=[...placedDeceased].filter(p=>!dReq.has(p));
   const ok=misH.length===0&&extH.length===0&&misD.length===0&&extD.length===0;
+  reportAnswer(ok); // 1問（お客様1人）ごとに累計
   if(ok){
     score++;
     document.getElementById('score-val').textContent=score;

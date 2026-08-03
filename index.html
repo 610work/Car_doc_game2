@@ -718,8 +718,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="result-label">件 対応</div>
   <div class="result-miss" id="result-miss"></div>
   <div id="name-input-wrap">
-    <input id="player-name" type="text" maxlength="12" placeholder="ニックネームを入力">
-    <button class="save-btn" onclick="saveScore()">ランキングに登録</button>
+    <input id="player-name" type="text" maxlength="12" style="display:none">
+    <div style="color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin:6px 0">🏆 ベストを更新すると、ランキングに自動で載ります（研修ページから遊んだ分）</div>
+    <button class="save-btn" onclick="showRanking()">🏆 ランキングを見る</button>
   </div>
   <button class="back-btn" onclick="goTitle()">タイトルに戻る</button>
 </div>
@@ -900,7 +901,7 @@ function reportAnswer(correct){
 function reportScore(){
   if(window.parent===window) return;
   if(score<=0 && misses<=0) return;
-  try{ window.parent.postMessage({type:'kenshuGameScore', score:score, total:null, misses:misses},'*'); }catch(e){}
+  try{ window.parent.postMessage({type:'kenshuGameScore', score:score, total:null, misses:misses, gameId:RANK_GAME},'*'); }catch(e){}
 }
 
 // ════════════════════════════════════════════════════════
@@ -1147,13 +1148,12 @@ function isMyRank(e){ return e && (!e.game || e.game===RANK_GAME); }
 
 // Firebase REST API ヘルパー
 async function fbGet(){
-  const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json`);
+  // 1人1枠のベスト記録（研修ページ経由で自動更新される）を読む
+  const res=await fetch(`${FB_DB_URL}/rankings_best/${RANK_GAME}.json`);
   if(!res.ok) throw new Error('GET failed');
   const data=await res.json();
-  if(!data) return [];
-  // objectをarrayに変換 → このゲームの記録だけに絞ってスコア降順ソート
-  return Object.values(data).filter(isMyRank)
-    .sort((a,b)=>b.score-a.score||(a.misses-b.misses)).slice(0,MAX_RANK);
+  return Object.values(data||{})
+    .sort((a,b)=>b.score-a.score||((a.misses??1e9)-(b.misses??1e9))).slice(0,MAX_RANK);
 }
 async function fbPush(entry){
   const res=await fetch(`${FB_DB_URL}${RANK_PATH}.json`,{
@@ -1215,7 +1215,7 @@ async function showRanking(){
   }
 
   if(list.length===0){
-    rl.innerHTML='<div class="empty-rank">まだ記録がありません。<br>タイムアタックに挑戦しよう！</div>';
+    rl.innerHTML='<div class="empty-rank">まだ記録がありません。<br>研修ページからエンドレスに挑戦すると自動で載ります！</div>';
     return;
   }
   rl.innerHTML='';
@@ -1229,7 +1229,7 @@ async function showRanking(){
       <div class="rank-num ${numCls}">${medal||i+1}</div>
       <div>
         <div class="rank-name">${escHtml(e.name)}</div>
-        <div class="rank-date">${e.date}</div>
+        <div class="rank-date">${e.at?new Date(e.at).toLocaleDateString("ja-JP"):(e.date||"")}</div>
       </div>
       <div style="text-align:right">
         <div class="rank-score">${e.score}<span> 件</span></div>

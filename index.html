@@ -192,6 +192,14 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   display:none;
 }
 
+/* ランキングの難易度タブ */
+.rank-diff-tab{
+  padding:7px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.06);color:var(--muted);font-size:clamp(12px,1.2vw,14px);
+  font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+}
+.rank-diff-tab.on{background:rgba(245,166,35,.2);border-color:var(--gold);color:var(--gold)}
+
 /* ── DOC PANEL ── */
 #doc-panel{
   background:var(--surface);border-top:2px solid var(--counter);flex-shrink:0;
@@ -706,7 +714,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <!-- ════ RANKING SCREEN ════ -->
 <div id="ranking-screen">
-  <div class="ranking-title">🏆 タイムアタック ランキング</div>
+  <div class="ranking-title">🏆 ランキング（難易度別）</div>
+  <div id="rank-diff-tabs" style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap">
+    <button class="rank-diff-tab" data-d="intro" onclick="setRankDiff('intro')">入門</button>
+    <button class="rank-diff-tab" data-d="easy" onclick="setRankDiff('easy')">初級</button>
+    <button class="rank-diff-tab" data-d="mid" onclick="setRankDiff('mid')">中級</button>
+    <button class="rank-diff-tab" data-d="hard" onclick="setRankDiff('hard')">上級</button>
+  </div>
   <div id="ranking-list"><div class="rank-loading">読み込み中…</div></div>
   <button class="rank-back-btn" onclick="hideRanking()">← 戻る</button>
 </div>
@@ -905,7 +919,7 @@ function reportScore(){
   const played=score+misses;
   if(played<10) return; // 10問未満のプレイは合格判定・ランキングの対象外
   const pct=Math.round(score/played*100);
-  try{ window.parent.postMessage({type:'kenshuGameScore', score:pct, total:100, misses:misses, gameId:RANK_GAME},'*'); }catch(e){}
+  try{ window.parent.postMessage({type:'kenshuGameScore', score:pct, total:100, misses:misses, gameId:RANK_GAME, difficulty:difficultyLevel},'*'); }catch(e){}
 }
 
 // ════════════════════════════════════════════════════════
@@ -1151,9 +1165,15 @@ const RANK_GAME='docs';
 function isMyRank(e){ return e && (!e.game || e.game===RANK_GAME); }
 
 // Firebase REST API ヘルパー
+let rankDiff='hard'; // 表示中の難易度（最終目標の上級を既定に）
+function setRankDiff(d){
+  rankDiff=d;
+  document.querySelectorAll('.rank-diff-tab').forEach(b=>b.classList.toggle('on',b.dataset.d===d));
+  showRanking();
+}
 async function fbGet(){
-  // 1人1枠のベスト記録（研修ページ経由で自動更新される）を読む
-  const res=await fetch(`${FB_DB_URL}/rankings_best/${RANK_GAME}.json`);
+  // 1人1枠のベスト記録（研修ページ経由で自動更新される）を難易度別に読む
+  const res=await fetch(`${FB_DB_URL}/rankings_best/${RANK_GAME}_${rankDiff}.json`);
   if(!res.ok) throw new Error('GET failed');
   const data=await res.json();
   return Object.values(data||{})
@@ -1207,6 +1227,9 @@ async function showRanking(){
   document.getElementById('result-screen').classList.remove('show');
   const rs=document.getElementById('ranking-screen');
   rs.classList.add('show');
+  // 直前にプレイした難易度があればそれを初期表示にする
+  if(typeof difficultyLevel==='string'&&['intro','easy','mid','hard'].includes(difficultyLevel)) rankDiff=rankDiff||difficultyLevel;
+  document.querySelectorAll('.rank-diff-tab').forEach(b=>b.classList.toggle('on',b.dataset.d===rankDiff));
   const rl=document.getElementById('ranking-list');
   rl.innerHTML='<div class="rank-loading">読み込み中…</div>';
 
@@ -1219,7 +1242,7 @@ async function showRanking(){
   }
 
   if(list.length===0){
-    rl.innerHTML='<div class="empty-rank">まだ記録がありません。<br>研修ページからエンドレスに挑戦すると自動で載ります！</div>';
+    rl.innerHTML='<div class="empty-rank">この難易度の記録はまだありません。<br>研修ページから10問以上プレイすると自動で載ります！</div>';
     return;
   }
   rl.innerHTML='';

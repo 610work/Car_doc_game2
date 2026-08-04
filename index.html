@@ -719,7 +719,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="result-miss" id="result-miss"></div>
   <div id="name-input-wrap">
     <input id="player-name" type="text" maxlength="12" style="display:none">
-    <div style="color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin:6px 0">🏆 ベストを更新すると、ランキングに自動で載ります（研修ページから遊んだ分）</div>
+    <div style="color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin:6px 0">🏆 ベストを更新すると、ランキングに自動で載ります（研修ページから遊んだ分）<br>合格基準：1回のプレイで<b>10問以上</b>・全問正解で100点。<b>別々の日に100点×2回</b>で合格！</div>
     <button class="save-btn" onclick="showRanking()">🏆 ランキングを見る</button>
   </div>
   <button class="back-btn" onclick="goTitle()">タイトルに戻る</button>
@@ -897,11 +897,15 @@ function reportAnswer(correct){
   if(window.parent===window) return;
   try{ window.parent.postMessage({type:'kenshuGameAnswer', correct:!!correct},'*'); }catch(e){}
 }
-// 親画面に成績を通知（進捗に自動記録される）
+// 親画面に成績を通知（進捗に自動記録される）。
+// 合格基準：1回のプレイで最低10問こなすこと。正解率を100点換算し、
+// 全問正解（ノーミス）なら100点。「別々の日に100点×2回」で合格。
 function reportScore(){
   if(window.parent===window) return;
-  if(score<=0 && misses<=0) return;
-  try{ window.parent.postMessage({type:'kenshuGameScore', score:score, total:null, misses:misses, gameId:RANK_GAME},'*'); }catch(e){}
+  const played=score+misses;
+  if(played<10) return; // 10問未満のプレイは合格判定・ランキングの対象外
+  const pct=Math.round(score/played*100);
+  try{ window.parent.postMessage({type:'kenshuGameScore', score:pct, total:100, misses:misses, gameId:RANK_GAME},'*'); }catch(e){}
 }
 
 // ════════════════════════════════════════════════════════
@@ -1232,8 +1236,8 @@ async function showRanking(){
         <div class="rank-date">${e.at?new Date(e.at).toLocaleDateString("ja-JP"):(e.date||"")}</div>
       </div>
       <div style="text-align:right">
-        <div class="rank-score">${e.score}<span> 件</span></div>
-        <div class="rank-miss">ミス ${e.misses}</div>
+        <div class="rank-score">${e.score}<span> 点</span></div>
+        <div class="rank-miss">${(e.misses!==undefined&&e.misses!==null)?`ミス ${e.misses}`:""}</div>
       </div>`;
     rl.appendChild(row);
   });
